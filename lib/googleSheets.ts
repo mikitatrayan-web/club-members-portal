@@ -15,6 +15,7 @@ type MemberRow = {
   drinks: number;
   snacks: number;
   archetype?: MemberArchetype | null;
+  reviewPosted?: boolean;
 };
 
 let sheetsClient: sheets_v4.Sheets | null = null;
@@ -42,7 +43,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:F";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
 
   if (!spreadsheetId) {
     throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
@@ -53,9 +54,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    // Always fetch A–F so we include the archetype column,
-    // regardless of whether GOOGLE_SHEETS_RANGE was configured as A:E.
-    range: `${sheetName}!A:F`
+    // Fetch full rows including archetype and review flags.
+    range: `${sheetName}!A:G`
   });
 
   const rows = response.data.values;
@@ -63,11 +63,20 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
     return null;
   }
 
-  // Assume first row is header: ID, Prerolls, Spins, Drinks, Snacks, Archetype
+  // Assume first row is header:
+  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted
   const [, ...dataRows] = rows;
 
   for (const row of dataRows) {
-    const [rowId, prerolls, spins, drinks, snacks, archetype] = row;
+    const [
+      rowId,
+      prerolls,
+      spins,
+      drinks,
+      snacks,
+      archetype,
+      reviewPosted
+    ] = row;
     if (String(rowId).trim() === id) {
       return {
         id: String(rowId).trim(),
@@ -78,7 +87,12 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
         archetype:
           typeof archetype === "string" && archetype.trim().length > 0
             ? (archetype.trim() as MemberArchetype)
-            : null
+            : null,
+        reviewPosted:
+          reviewPosted === 1 ||
+          reviewPosted === "1" ||
+          (typeof reviewPosted === "string" &&
+            reviewPosted.toLowerCase() === "true")
       };
     }
   }
@@ -91,7 +105,7 @@ export async function setMemberArchetype(
   archetype: MemberArchetype
 ): Promise<void> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:F";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
 
   if (!spreadsheetId) {
     throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
@@ -102,7 +116,8 @@ export async function setMemberArchetype(
 
   const valuesResponse = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A:F`
+    // Read the whole sheet to avoid range issues.
+    range: sheetName
   });
 
   const rows = valuesResponse.data.values;
@@ -133,5 +148,54 @@ export async function setMemberArchetype(
     }
   });
 }
+
+export async function setMemberReviewPosted(
+  id: string,
+  posted: boolean
+): Promise<void> {
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
+
+  if (!spreadsheetId) {
+    throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
+  }
+
+  const [sheetName] = configuredRange.split("!");
+  const sheets = getSheetsClient();
+
+  const valuesResponse = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: sheetName
+  });
+
+  const rows = valuesResponse.data.values;
+  if (!rows || rows.length < 2) {
+    throw new Error("No rows found in member sheet.");
+  }
+
+  const [, ...dataRows] = rows;
+
+  let rowNumber: number | null = null;
+  dataRows.forEach((row, index) => {
+    const [rowId] = row;
+    if (String(rowId).trim() === id) {
+      rowNumber = index + 2; // account for header row
+    }
+  });
+
+  if (!rowNumber) {
+    throw new Error("Member not found when setting review flag.");
+  }
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!G${rowNumber}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [[posted ? 1 : 0]]
+    }
+  });
+}
+
 
 

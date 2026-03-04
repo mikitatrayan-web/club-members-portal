@@ -18,6 +18,7 @@ type MemberResponse =
         drinks: number;
         snacks: number;
         archetype?: Archetype | null;
+        reviewPosted?: boolean;
       };
     }
   | {
@@ -33,12 +34,16 @@ export default function HomePage() {
 
   const [archetypeSaving, setArchetypeSaving] = useState(false);
   const [archetypeError, setArchetypeError] = useState<string | null>(null);
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
     setResult(null);
     setArchetypeError(null);
+    setReviewError(null);
 
     const trimmedId = memberId.trim();
     if (trimmedId.length < 5 || trimmedId.length > 6) {
@@ -106,6 +111,60 @@ export default function HomePage() {
       setArchetypeError("Unable to save archetype. Please try again.");
     } finally {
       setArchetypeSaving(false);
+    }
+  };
+
+  const handleReviewClick = async () => {
+    if (!result || !result.found || result.member.reviewPosted) return;
+
+    setReviewError(null);
+    setReviewSaving(true);
+    setCopied(false);
+
+    try {
+      if (typeof window !== "undefined") {
+        window.open(
+          "https://maps.app.goo.gl/tZiqzBxyQjf7kA3D7",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }
+
+      const response = await fetch("/api/member-review", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: result.member.id,
+          posted: true
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        const message =
+          (data && typeof data.error === "string" && data.error) ||
+          "Unable to mark review as posted. Please tell staff.";
+        setReviewError(message);
+        return;
+      }
+
+      setResult((current) =>
+        current && current.found
+          ? {
+              ...current,
+              member: {
+                ...current.member,
+                reviewPosted: true
+              }
+            }
+          : current
+      );
+    } catch {
+      setReviewError("Unable to mark review as posted. Please tell staff.");
+    } finally {
+      setReviewSaving(false);
     }
   };
 
@@ -227,6 +286,68 @@ export default function HomePage() {
               When your balances return to zero, the cosmos simply waits for
               your next orbit.
             </p>
+
+            {!result.member.reviewPosted ? (
+              <div style={{ marginTop: "1.1rem" }}>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={handleReviewClick}
+                  disabled={reviewSaving}
+                >
+                  LEAVE REVIEW -&gt; GET PRE-ROLL
+                </button>
+                {reviewError && (
+                  <p
+                    className="banner-error"
+                    style={{ marginTop: "0.7rem", fontSize: "0.78rem" }}
+                  >
+                    {reviewError}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="review-panel">
+                <p className="review-panel-title">
+                  AFTER THE REVIEW IS POSTED – CLAIM YOUR PRE-ROLL
+                </p>
+                <p className="review-panel-body">
+                  Show this to staff after your cosmic words go live. They&apos;ll
+                  anchor your bonus into this profile.
+                </p>
+                <div className="review-panel-row">
+                  <a
+                    href="https://maps.app.goo.gl/tZiqzBxyQjf7kA3D7"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="review-link-pill"
+                  >
+                    Open review portal
+                  </a>
+                  <button
+                    type="button"
+                    className="review-copy-button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          "https://maps.app.goo.gl/tZiqzBxyQjf7kA3D7"
+                        );
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      } catch {
+                        setCopied(false);
+                      }
+                    }}
+                  >
+                    {copied ? "Copied" : "Copy link"}
+                  </button>
+                </div>
+                <p className="review-ack">
+                  Once staff have seen your review, they&apos;ll add the pre-roll
+                  to your cosmic balance.
+                </p>
+              </div>
+            )}
 
             {!result.member.archetype && (
               <div style={{ marginTop: "1.3rem" }}>
