@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 
 type Archetype =
@@ -7,6 +8,25 @@ type Archetype =
   | "Sativa wizard"
   | "Hash gnome"
   | "Hybrid elf";
+
+const archetypeImageByLabel: Record<Archetype, { src: string; alt: string }> = {
+  "Hash gnome": {
+    src: "/chars/hash.png",
+    alt: "Hash Gnome"
+  },
+  "Indica warrior": {
+    src: "/chars/indica.png",
+    alt: "Indica Warrior"
+  },
+  "Sativa wizard": {
+    src: "/chars/sativa.png",
+    alt: "Sativa Wizard"
+  },
+  "Hybrid elf": {
+    src: "/chars/hybrid.png",
+    alt: "Hybrid Elf"
+  }
+};
 
 type MemberResponse =
   | {
@@ -22,6 +42,7 @@ type MemberResponse =
         reviewCredited?: boolean;
         referredBy?: string | null;
         referrals?: string[];
+        igSubscribed?: boolean;
       };
     }
   | {
@@ -268,7 +289,7 @@ export default function HomePage() {
               <div className="profile-avatar">
                 {result.member.id.slice(0, 2).toUpperCase()}
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <p className="profile-meta-eyebrow">Cosmic Voyager Profile</p>
                 <h1 className="profile-meta-title">
                   Member {result.member.id}
@@ -278,6 +299,26 @@ export default function HomePage() {
                   the garden still owes you.
                 </p>
               </div>
+              {result.member.archetype && (
+                <div
+                  style={{
+                    position: "relative",
+                    width: 72,
+                    height: 96,
+                    borderRadius: 16,
+                    overflow: "hidden",
+                    flexShrink: 0
+                  }}
+                >
+                  <Image
+                    src={archetypeImageByLabel[result.member.archetype].src}
+                    alt={archetypeImageByLabel[result.member.archetype].alt}
+                    fill
+                    sizes="96px"
+                    style={{ objectFit: "cover" }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="bonus-grid">
@@ -325,8 +366,50 @@ export default function HomePage() {
               your next orbit.
             </p>
 
+            <div
+              className={
+                "review-panel" +
+                (result.member.igSubscribed ? " review-panel--complete" : "")
+              }
+              style={{ marginTop: "0.9rem" }}
+            >
+              {result.member.igSubscribed ? (
+                <>
+                  <p className="review-panel-title">
+                    QUEST COMPLETE – INSTA PRE-ROLL
+                  </p>
+                  <p className="review-panel-body">
+                    You&apos;re already tuned into our Instagram signal. Staff
+                    have credited your subscription pre-roll; watch for the next
+                    quest to appear here.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="review-panel-title">
+                    FOLLOW US – GET PRE-ROLL
+                  </p>
+                  <p className="review-panel-body">
+                    Subscribe to our Instagram to unlock another pre-roll. Show
+                    staff your follow screen so they can sync the bonus into
+                    this profile.
+                  </p>
+                  <div className="review-panel-row">
+                    <a
+                      href="https://instagram.com/icetraycsc"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="review-link-pill"
+                    >
+                      Open Instagram
+                    </a>
+                  </div>
+                </>
+              )}
+            </div>
+
             {result.member.reviewCredited ? (
-              <div className="review-panel">
+              <div className="review-panel review-panel--complete">
                 <p className="review-panel-title">
                   QUEST COMPLETE – PRE-ROLL CREDITED
                 </p>

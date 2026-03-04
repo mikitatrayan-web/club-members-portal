@@ -19,6 +19,7 @@ type MemberRow = {
   reviewCredited?: boolean;
   referredBy?: string | null;
   referrals?: string[];
+  igSubscribed?: boolean;
 };
 
 function sheetValueToBoolean(value: unknown): boolean {
@@ -56,7 +57,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:I";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:J";
   const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
@@ -68,8 +69,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    // Fetch full rows including archetype, review flags, credited tickbox, and referrals.
-    range: `${sheetName}!A:I`
+    // Fetch full rows including archetype, review flags, credited tickbox, referrals and quests.
+    range: `${sheetName}!A:J`
   });
 
   const rows = response.data.values;
@@ -78,7 +79,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
   }
 
   // Assume first row is header:
-  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted, ReviewCredited, ReferredBy
+  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted, ReviewCredited, ReferredBy, IgSubscribed
   const [, ...dataRows] = rows;
 
   let matched: MemberRow | null = null;
@@ -93,7 +94,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       archetype,
       reviewPosted,
       reviewCredited,
-      referredBy
+      referredBy,
+      igSubscribed
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
       // Lightweight debug to help diagnose sheet mapping issues in development.
@@ -127,7 +129,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
           typeof referredBy === "string" && referredBy.trim().length > 0
             ? referredBy.trim()
             : null,
-        referrals: []
+        referrals: [],
+        igSubscribed: sheetValueToBoolean(igSubscribed)
       };
       break;
     }

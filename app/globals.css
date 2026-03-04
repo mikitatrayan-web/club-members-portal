@@ -455,6 +455,17 @@ button {
   color: #ecfdf5;
 }
 
+.review-panel--complete {
+  background: radial-gradient(
+      circle at 0 0,
+      rgba(253, 224, 71, 0.38),
+      transparent 55%
+    ),
+    rgba(161, 98, 7, 0.96);
+  border-color: rgba(250, 204, 21, 0.95);
+  color: #fffbeb;
+}
+
 .review-panel-title {
   font-size: 0.9rem;
   font-weight: 650;
