@@ -91,6 +91,21 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       reviewCredited
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
+      // Lightweight debug to help diagnose sheet mapping issues in development.
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Matched member row from Sheets", {
+          rowId,
+          prerolls,
+          spins,
+          drinks,
+          snacks,
+          archetype,
+          reviewPostedRaw: reviewPosted,
+          reviewCreditedRaw: reviewCredited,
+          reviewPostedParsed: sheetValueToBoolean(reviewPosted),
+          reviewCreditedParsed: sheetValueToBoolean(reviewCredited)
+        });
+      }
       return {
         id: String(rowId).trim(),
         prerolls: Number(prerolls) || 0,
