@@ -209,7 +209,7 @@ export default function HomePage() {
                     <input
                       id="member-id"
                       type="text"
-                      inputMode="numeric"
+                      inputMode="text"
                       minLength={5}
                       maxLength={6}
                       value={memberId}
