@@ -56,8 +56,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    // Fetch full rows including archetype and review flags.
-    range: `${sheetName}!A:G`
+    // Fetch full rows including archetype, review flags, and credited tickbox.
+    range: `${sheetName}!A:H`
   });
 
   const rows = response.data.values;
