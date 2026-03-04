@@ -19,6 +19,16 @@ type MemberRow = {
   reviewCredited?: boolean;
 };
 
+function sheetValueToBoolean(value: unknown): boolean {
+  if (value === true) return true;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    return v === "true" || v === "1" || v === "yes" || v === "y";
+  }
+  return false;
+}
+
 let sheetsClient: sheets_v4.Sheets | null = null;
 
 function getSheetsClient(): sheets_v4.Sheets {
@@ -91,16 +101,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
           typeof archetype === "string" && archetype.trim().length > 0
             ? (archetype.trim() as MemberArchetype)
             : null,
-        reviewPosted:
-          reviewPosted === 1 ||
-          reviewPosted === "1" ||
-          (typeof reviewPosted === "string" &&
-            reviewPosted.toLowerCase() === "true"),
-        reviewCredited:
-          reviewCredited === 1 ||
-          reviewCredited === "1" ||
-          (typeof reviewCredited === "string" &&
-            reviewCredited.toLowerCase() === "true")
+        reviewPosted: sheetValueToBoolean(reviewPosted),
+        reviewCredited: sheetValueToBoolean(reviewCredited)
       };
     }
   }
