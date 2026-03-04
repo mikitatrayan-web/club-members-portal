@@ -44,6 +44,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
+  const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
     throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
@@ -77,7 +78,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       archetype,
       reviewPosted
     ] = row;
-    if (String(rowId).trim() === id) {
+    if (String(rowId).trim().toUpperCase() === normalizedId) {
       return {
         id: String(rowId).trim(),
         prerolls: Number(prerolls) || 0,
@@ -106,6 +107,7 @@ export async function setMemberArchetype(
 ): Promise<void> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
+  const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
     throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
@@ -130,7 +132,7 @@ export async function setMemberArchetype(
   let rowNumber: number | null = null;
   dataRows.forEach((row, index) => {
     const [rowId] = row;
-    if (String(rowId).trim() === id) {
+    if (String(rowId).trim().toUpperCase() === normalizedId) {
       rowNumber = index + 2; // account for header row
     }
   });
@@ -155,6 +157,7 @@ export async function setMemberReviewPosted(
 ): Promise<void> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
+  const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
     throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
@@ -178,7 +181,7 @@ export async function setMemberReviewPosted(
   let rowNumber: number | null = null;
   dataRows.forEach((row, index) => {
     const [rowId] = row;
-    if (String(rowId).trim() === id) {
+    if (String(rowId).trim().toUpperCase() === normalizedId) {
       rowNumber = index + 2; // account for header row
     }
   });
