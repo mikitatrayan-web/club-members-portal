@@ -20,6 +20,8 @@ type MemberResponse =
         archetype?: Archetype | null;
         reviewPosted?: boolean;
         reviewCredited?: boolean;
+        referredBy?: string | null;
+        referrals?: string[];
       };
     }
   | {
@@ -284,6 +286,35 @@ export default function HomePage() {
               <BonusCard label="Drinks" value={result.member.drinks} />
               <BonusCard label="Snacks" value={result.member.snacks} />
             </div>
+
+            {(() => {
+              const referredBy = result.member.referredBy;
+              const hasReferrer =
+                referredBy &&
+                referredBy !== "0" &&
+                String(referredBy).trim() !== "";
+              const referrals = (result.member.referrals || []).filter(
+                (r) => r != null && r !== "" && String(r).trim() !== "0"
+              );
+              const hasReferrals = referrals.length > 0;
+              if (!hasReferrer && !hasReferrals) return null;
+              return (
+                <div style={{ marginTop: "0.8rem" }}>
+                  {hasReferrer && (
+                    <p className="profile-copy-secondary">
+                      You were welcomed into this orbit by{" "}
+                      <span style={{ fontWeight: 600 }}>{referredBy}</span>.
+                    </p>
+                  )}
+                  <p className="profile-copy-secondary" style={{ marginTop: "0.25rem" }}>
+                    Your referrals:{" "}
+                    {hasReferrals
+                      ? referrals.join(", ")
+                      : "You haven't referred anyone yet."}
+                  </p>
+                </div>
+              );
+            })()}
 
             <p className="profile-copy">
               Redeem these in-club with any staff member. Herbs, spins, and sips

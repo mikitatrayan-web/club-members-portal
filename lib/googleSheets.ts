@@ -17,6 +17,8 @@ type MemberRow = {
   archetype?: MemberArchetype | null;
   reviewPosted?: boolean;
   reviewCredited?: boolean;
+  referredBy?: string | null;
+  referrals?: string[];
 };
 
 function sheetValueToBoolean(value: unknown): boolean {
@@ -54,7 +56,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:H";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:I";
   const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
@@ -66,8 +68,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    // Fetch full rows including archetype, review flags, and credited tickbox.
-    range: `${sheetName}!A:H`
+    // Fetch full rows including archetype, review flags, credited tickbox, and referrals.
+    range: `${sheetName}!A:I`
   });
 
   const rows = response.data.values;
@@ -76,8 +78,10 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
   }
 
   // Assume first row is header:
-  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted, ReviewCredited
+  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted, ReviewCredited, ReferredBy
   const [, ...dataRows] = rows;
+
+  let matched: MemberRow | null = null;
 
   for (const row of dataRows) {
     const [
@@ -88,7 +92,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       snacks,
       archetype,
       reviewPosted,
-      reviewCredited
+      reviewCredited,
+      referredBy
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
       // Lightweight debug to help diagnose sheet mapping issues in development.
@@ -106,7 +111,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
           reviewCreditedParsed: sheetValueToBoolean(reviewCredited)
         });
       }
-      return {
+      matched = {
         id: String(rowId).trim(),
         prerolls: Number(prerolls) || 0,
         spins: Number(spins) || 0,
@@ -117,12 +122,36 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
             ? (archetype.trim() as MemberArchetype)
             : null,
         reviewPosted: sheetValueToBoolean(reviewPosted),
-        reviewCredited: sheetValueToBoolean(reviewCredited)
+        reviewCredited: sheetValueToBoolean(reviewCredited),
+        referredBy:
+          typeof referredBy === "string" && referredBy.trim().length > 0
+            ? referredBy.trim()
+            : null,
+        referrals: []
       };
+      break;
     }
   }
+  if (!matched) {
+    return null;
+  }
 
-  return null;
+  // Collect referrals: any row whose "ReferredBy" (column I) matches this member's ID.
+  const referrals: string[] = [];
+  dataRows.forEach((row) => {
+    const [rowId, , , , , , , , referredBy] = row;
+    if (
+      typeof referredBy === "string" &&
+      referredBy.trim().toUpperCase() === normalizedId
+    ) {
+      referrals.push(String(rowId).trim());
+    }
+  });
+
+  return {
+    ...matched,
+    referrals
+  };
 }
 
 export async function setMemberArchetype(
