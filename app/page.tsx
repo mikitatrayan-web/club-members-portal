@@ -19,6 +19,7 @@ type MemberResponse =
         snacks: number;
         archetype?: Archetype | null;
         reviewPosted?: boolean;
+        reviewCredited?: boolean;
       };
     }
   | {
@@ -115,7 +116,13 @@ export default function HomePage() {
   };
 
   const handleReviewClick = async () => {
-    if (!result || !result.found || result.member.reviewPosted) return;
+    if (
+      !result ||
+      !result.found ||
+      result.member.reviewPosted ||
+      result.member.reviewCredited
+    )
+      return;
 
     setReviewError(null);
     setReviewSaving(true);
@@ -287,7 +294,17 @@ export default function HomePage() {
               your next orbit.
             </p>
 
-            {!result.member.reviewPosted ? (
+            {result.member.reviewCredited ? (
+              <div className="review-panel">
+                <p className="review-panel-title">
+                  QUEST COMPLETE – PRE-ROLL CREDITED
+                </p>
+                <p className="review-panel-body">
+                  Staff have already anchored this bonus into your profile. Drift
+                  back later for new quests and fresh herbal missions.
+                </p>
+              </div>
+            ) : !result.member.reviewPosted ? (
               <div style={{ marginTop: "1.1rem" }}>
                 <button
                   type="button"

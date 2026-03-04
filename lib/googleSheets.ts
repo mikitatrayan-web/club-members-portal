@@ -16,6 +16,7 @@ type MemberRow = {
   snacks: number;
   archetype?: MemberArchetype | null;
   reviewPosted?: boolean;
+  reviewCredited?: boolean;
 };
 
 let sheetsClient: sheets_v4.Sheets | null = null;
@@ -43,7 +44,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:G";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:H";
   const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
@@ -65,7 +66,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
   }
 
   // Assume first row is header:
-  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted
+  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted, ReviewCredited
   const [, ...dataRows] = rows;
 
   for (const row of dataRows) {
@@ -76,7 +77,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       drinks,
       snacks,
       archetype,
-      reviewPosted
+      reviewPosted,
+      reviewCredited
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
       return {
@@ -93,7 +95,12 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
           reviewPosted === 1 ||
           reviewPosted === "1" ||
           (typeof reviewPosted === "string" &&
-            reviewPosted.toLowerCase() === "true")
+            reviewPosted.toLowerCase() === "true"),
+        reviewCredited:
+          reviewCredited === 1 ||
+          reviewCredited === "1" ||
+          (typeof reviewCredited === "string" &&
+            reviewCredited.toLowerCase() === "true")
       };
     }
   }
