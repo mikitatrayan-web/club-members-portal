@@ -49,10 +49,13 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
   }
 
   const sheets = getSheetsClient();
+  const [sheetName] = configuredRange.split("!");
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: configuredRange
+    // Always fetch A–F so we include the archetype column,
+    // regardless of whether GOOGLE_SHEETS_RANGE was configured as A:E.
+    range: `${sheetName}!A:F`
   });
 
   const rows = response.data.values;
