@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Archetype =
   | "Indica warrior"
@@ -49,7 +50,13 @@ type MemberResponse =
     };
 
 export default function HomePage() {
-  const [memberId, setMemberId] = useState("");
+  const searchParams = useSearchParams();
+  const [memberId, setMemberId] = useState(searchParams.get("member") ?? "");
+
+  useEffect(() => {
+    const id = searchParams.get("member");
+    if (id) setMemberId(id);
+  }, [searchParams]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MemberResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
