@@ -10,10 +10,7 @@ export type MemberArchetype =
 
 type MemberRow = {
   id: string;
-  prerolls: number;
   spins: number;
-  drinks: number;
-  snacks: number;
   archetype?: MemberArchetype | null;
   reviewPosted?: boolean;
   reviewCredited?: boolean;
@@ -95,10 +92,10 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
   for (const row of dataRows) {
     const [
       rowId,
-      prerolls,
+      ,
       spins,
-      drinks,
-      snacks,
+      ,
+      ,
       archetype,
       reviewPosted,
       reviewCredited,
@@ -113,10 +110,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       if (process.env.NODE_ENV !== "production") {
         console.log("Matched member row from Sheets", {
           rowId,
-          prerolls,
           spins,
-          drinks,
-          snacks,
           archetype,
           reviewPostedRaw: reviewPosted,
           reviewCreditedRaw: reviewCredited,
@@ -126,10 +120,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       }
       matched = {
         id: String(rowId).trim(),
-        prerolls: Number(prerolls) || 0,
         spins: Number(spins) || 0,
-        drinks: Number(drinks) || 0,
-        snacks: Number(snacks) || 0,
         archetype:
           typeof archetype === "string" && archetype.trim().length > 0
             ? (archetype.trim() as MemberArchetype)
@@ -275,7 +266,7 @@ export async function setMemberReviewPosted(
   });
 }
 
-export async function incrementMemberSpinCount(id: string): Promise<number> {
+export async function incrementMemberSpinCount(id: string, outcomeLabel: string): Promise<number> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:M";
   const normalizedId = id.trim().toUpperCase();
@@ -311,18 +302,20 @@ export async function incrementMemberSpinCount(id: string): Promise<number> {
     throw new Error("Member not found when incrementing spin count.");
   }
 
-  // Read current spin balance (col C) and spin uses counter (col M) together.
+  // Read current spin balance (col C), spin uses counter (col M), and spin log (col B).
   const cellsResponse = await sheets.spreadsheets.values.batchGet({
     spreadsheetId,
     ranges: [
+      `${sheetName}!B${rowNumber}`,
       `${sheetName}!C${rowNumber}`,
       `${sheetName}!M${rowNumber}`
     ]
   });
 
   const valueRanges = cellsResponse.data.valueRanges ?? [];
-  const rawSpins = valueRanges[0]?.values?.[0]?.[0];
-  const rawUses = valueRanges[1]?.values?.[0]?.[0];
+  const rawLog = valueRanges[0]?.values?.[0]?.[0];
+  const rawSpins = valueRanges[1]?.values?.[0]?.[0];
+  const rawUses = valueRanges[2]?.values?.[0]?.[0];
 
   const currentSpins = Number(rawSpins) || 0;
   const currentUses = Number(rawUses) || 0;
@@ -330,11 +323,25 @@ export async function incrementMemberSpinCount(id: string): Promise<number> {
   const nextSpins = Math.max(0, currentSpins - 1);
   const nextUses = currentUses + 1;
 
+  const now = new Date();
+  const timestamp = now.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+  const entry = `${outcomeLabel} (${timestamp})`;
+  const existingLog = typeof rawLog === "string" && rawLog.trim().length > 0 ? rawLog.trim() : "";
+  const newLog = existingLog ? `${existingLog}\n${entry}` : entry;
+
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
     requestBody: {
       valueInputOption: "USER_ENTERED",
       data: [
+        { range: `${sheetName}!B${rowNumber}`, values: [[newLog]] },
         { range: `${sheetName}!C${rowNumber}`, values: [[nextSpins]] },
         { range: `${sheetName}!M${rowNumber}`, values: [[nextUses]] }
       ]

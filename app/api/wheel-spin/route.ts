@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       segmentIndex
     };
 
-    const newSpinCount = await incrementMemberSpinCount(trimmedId);
+    const newSpinCount = await incrementMemberSpinCount(trimmedId, outcome.label);
 
     return NextResponse.json({
       ok: true,

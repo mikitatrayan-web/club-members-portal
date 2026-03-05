@@ -33,10 +33,7 @@ type MemberResponse =
       found: true;
       member: {
         id: string;
-        prerolls: number;
         spins: number;
-        drinks: number;
-        snacks: number;
         archetype?: Archetype | null;
         reviewPosted?: boolean;
         reviewCredited?: boolean;
@@ -214,8 +211,7 @@ export default function HomePage() {
               </h1>
               <p className="hero-subtitle">
                 Whisper your member ID into the portal and we&apos;ll reveal the
-                stash the cosmos set aside for you: prerolls, spins, drinks, and
-                snacks grown from timeless herbs.
+                stash the cosmos set aside for you: spins grown from timeless herbs.
               </p>
               <p className="hero-footnote">
                 Minimal signal. No noise. Just you, the void, and the green
@@ -323,10 +319,7 @@ export default function HomePage() {
             </div>
 
             <div className="bonus-grid">
-              <BonusCard label="Prerolls" value={result.member.prerolls} />
               <BonusCard label="Spins" value={result.member.spins} />
-              <BonusCard label="Drinks" value={result.member.drinks} />
-              <BonusCard label="Snacks" value={result.member.snacks} />
             </div>
 
             {result.member.collectibles && result.member.collectibles.length > 0 && (
