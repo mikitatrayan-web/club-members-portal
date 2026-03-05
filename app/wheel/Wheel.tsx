@@ -7,24 +7,18 @@ type WheelProps = {
   activeIndex: number | null;
   spinning: boolean;
   onSpinComplete?: () => void;
-};
-type SpinWheelInstance = {
-  spinToItem: (
-    itemIndex?: number,
-    duration?: number,
-    spinToCenter?: boolean,
-    numberOfRevolutions?: number,
-    direction?: number,
-    easingFunction?: ((n: number) => number) | null
-  ) => void;
-  remove?: () => void;
+  onSpinGesture?: () => void;
+  canSpin?: boolean;
 };
 
-export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
+type SpinWheelInstance = InstanceType<typeof import("spin-wheel").Wheel>;
+
+export function Wheel({ activeIndex, spinning, onSpinComplete, onSpinGesture, canSpin }: WheelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const wheelRef = useRef<SpinWheelInstance | null>(null);
   const easingRef = useRef<((n: number) => number) | null>(null);
   const lastIndexRef = useRef<number | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -32,9 +26,7 @@ export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
     const setup = async () => {
       if (!containerRef.current) return;
       try {
-        const spinWheelModule = await import("spin-wheel");
-        const WheelClass = (spinWheelModule as any).Wheel;
-        const easing = (spinWheelModule as any).easing;
+        const { Wheel: WheelClass, easing } = await import("spin-wheel");
 
         if (!WheelClass || !mounted) return;
 
@@ -95,9 +87,41 @@ export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
     }
   }, [activeIndex, onSpinComplete]);
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!canSpin) return;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStartRef.current || !canSpin) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    dragStartRef.current = null;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 50 && onSpinGesture) {
+      onSpinGesture();
+    }
+  };
+
+  const handlePointerCancel = () => {
+    dragStartRef.current = null;
+  };
+
   return (
     <div
-      style={{ position: "relative", width: 280, height: 280, margin: "0 auto" }}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      style={{
+        position: "relative",
+        width: 280,
+        height: 280,
+        margin: "0 auto",
+        cursor: canSpin ? "grab" : "default",
+        touchAction: "none",
+        userSelect: "none"
+      }}
     >
       <div
         style={{
@@ -124,4 +148,3 @@ export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
     </div>
   );
 }
-
