@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Archetype =
@@ -50,6 +50,14 @@ type MemberResponse =
     };
 
 export default function HomePage() {
+  return (
+    <Suspense>
+      <HomePageInner />
+    </Suspense>
+  );
+}
+
+function HomePageInner() {
   const searchParams = useSearchParams();
   const [memberId, setMemberId] = useState(searchParams.get("member") ?? "");
 

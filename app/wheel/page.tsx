@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Wheel } from "./Wheel";
 import { wheelSegments } from "./config";
@@ -22,6 +22,14 @@ type WheelSpinResponse =
     };
 
 export default function WheelPage() {
+  return (
+    <Suspense>
+      <WheelPageInner />
+    </Suspense>
+  );
+}
+
+function WheelPageInner() {
   const searchParams = useSearchParams();
   const [memberId, setMemberId] = useState(searchParams.get("member") ?? "");
 
