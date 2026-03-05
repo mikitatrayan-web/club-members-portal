@@ -94,7 +94,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       rowId,
       ,
       spins,
-      ,
+      spinUsesRaw,
       ,
       archetype,
       reviewPosted,
@@ -103,7 +103,6 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       igSubscribed,
       ,
       collectiblesRaw,
-      spinUsesRaw
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
       // Lightweight debug to help diagnose sheet mapping issues in development.
@@ -302,13 +301,13 @@ export async function incrementMemberSpinCount(id: string, outcomeLabel: string)
     throw new Error("Member not found when incrementing spin count.");
   }
 
-  // Read current spin balance (col C), spin uses counter (col M), and spin log (col B).
+  // Read current spin balance (col C), spin uses counter (col D), and spin log (col B).
   const cellsResponse = await sheets.spreadsheets.values.batchGet({
     spreadsheetId,
     ranges: [
       `${sheetName}!B${rowNumber}`,
       `${sheetName}!C${rowNumber}`,
-      `${sheetName}!M${rowNumber}`
+      `${sheetName}!D${rowNumber}`
     ]
   });
 
@@ -343,7 +342,7 @@ export async function incrementMemberSpinCount(id: string, outcomeLabel: string)
       data: [
         { range: `${sheetName}!B${rowNumber}`, values: [[newLog]] },
         { range: `${sheetName}!C${rowNumber}`, values: [[nextSpins]] },
-        { range: `${sheetName}!M${rowNumber}`, values: [[nextUses]] }
+        { range: `${sheetName}!D${rowNumber}`, values: [[nextUses]] }
       ]
     }
   });
