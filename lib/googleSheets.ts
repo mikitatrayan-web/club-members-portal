@@ -21,6 +21,11 @@ type MemberRow = {
   referrals?: string[];
   igSubscribed?: boolean;
   collectibles?: string[];
+  /**
+   * Total number of wheel spins used by this member.
+   * Backed by column M in the Google Sheet.
+   */
+  spinUses?: number;
 };
 
 function sheetValueToBoolean(value: unknown): boolean {
@@ -58,7 +63,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:L";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:M";
   const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
@@ -70,8 +75,9 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    // Fetch full rows including archetype, review flags, credited tickbox, referrals, quests and collectibles.
-    range: `${sheetName}!A:L`
+    // Fetch full rows including archetype, review flags, credited tickbox,
+    // referrals, quests, collectibles and spin usage counter in column M.
+    range: `${sheetName}!A:M`
   });
 
   const rows = response.data.values;
@@ -81,7 +87,7 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   // Assume first row is header:
   // ID, Prerolls, Spins, Drinks, Snacks, Archetype,
-  // ReviewPosted, ReviewCredited, ReferredBy, IgSubscribed, ..., Collectibles
+  // ReviewPosted, ReviewCredited, ReferredBy, IgSubscribed, ..., Collectibles, SpinUses
   const [, ...dataRows] = rows;
 
   let matched: MemberRow | null = null;
@@ -99,7 +105,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       referredBy,
       igSubscribed,
       ,
-      collectiblesRaw
+      collectiblesRaw,
+      spinUsesRaw
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
       // Lightweight debug to help diagnose sheet mapping issues in development.
@@ -141,7 +148,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
                 .split(/[,，]/)
                 .map((v) => v.trim())
                 .filter((v) => v.length > 0)
-            : []
+            : [],
+        spinUses: Number(spinUsesRaw) || 0
       };
       break;
     }
@@ -267,5 +275,61 @@ export async function setMemberReviewPosted(
   });
 }
 
+export async function incrementMemberSpinCount(id: string): Promise<number> {
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:M";
+  const normalizedId = id.trim().toUpperCase();
 
+  if (!spreadsheetId) {
+    throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not configured.");
+  }
+
+  const [sheetName] = configuredRange.split("!");
+  const sheets = getSheetsClient();
+
+  const valuesResponse = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: sheetName
+  });
+
+  const rows = valuesResponse.data.values;
+  if (!rows || rows.length < 2) {
+    throw new Error("No rows found in member sheet.");
+  }
+
+  const [, ...dataRows] = rows;
+
+  let rowNumber: number | null = null;
+  dataRows.forEach((row, index) => {
+    const [rowId] = row;
+    if (String(rowId).trim().toUpperCase() === normalizedId) {
+      rowNumber = index + 2; // account for header row
+    }
+  });
+
+  if (!rowNumber) {
+    throw new Error("Member not found when incrementing spin count.");
+  }
+
+  const currentValueResponse = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!M${rowNumber}`
+  });
+
+  const cellValues = currentValueResponse.data.values;
+  const rawValue = cellValues && cellValues[0] && cellValues[0][0];
+  const currentCount = Number(rawValue) || 0;
+  const nextCount = currentCount + 1;
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!M${rowNumber}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [[nextCount]]
+    }
+  });
+
+  return nextCount;
+}
 
