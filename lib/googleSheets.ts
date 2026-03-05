@@ -20,6 +20,7 @@ type MemberRow = {
   referredBy?: string | null;
   referrals?: string[];
   igSubscribed?: boolean;
+  collectibles?: string[];
 };
 
 function sheetValueToBoolean(value: unknown): boolean {
@@ -57,7 +58,7 @@ function getSheetsClient(): sheets_v4.Sheets {
 
 export async function getMemberById(id: string): Promise<MemberRow | null> {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:J";
+  const configuredRange = process.env.GOOGLE_SHEETS_RANGE || "Sheet1!A:L";
   const normalizedId = id.trim().toUpperCase();
 
   if (!spreadsheetId) {
@@ -69,8 +70,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    // Fetch full rows including archetype, review flags, credited tickbox, referrals and quests.
-    range: `${sheetName}!A:J`
+    // Fetch full rows including archetype, review flags, credited tickbox, referrals, quests and collectibles.
+    range: `${sheetName}!A:L`
   });
 
   const rows = response.data.values;
@@ -79,7 +80,8 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
   }
 
   // Assume first row is header:
-  // ID, Prerolls, Spins, Drinks, Snacks, Archetype, ReviewPosted, ReviewCredited, ReferredBy, IgSubscribed
+  // ID, Prerolls, Spins, Drinks, Snacks, Archetype,
+  // ReviewPosted, ReviewCredited, ReferredBy, IgSubscribed, ..., Collectibles
   const [, ...dataRows] = rows;
 
   let matched: MemberRow | null = null;
@@ -95,7 +97,9 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
       reviewPosted,
       reviewCredited,
       referredBy,
-      igSubscribed
+      igSubscribed,
+      ,
+      collectiblesRaw
     ] = row;
     if (String(rowId).trim().toUpperCase() === normalizedId) {
       // Lightweight debug to help diagnose sheet mapping issues in development.
@@ -130,7 +134,14 @@ export async function getMemberById(id: string): Promise<MemberRow | null> {
             ? referredBy.trim()
             : null,
         referrals: [],
-        igSubscribed: sheetValueToBoolean(igSubscribed)
+        igSubscribed: sheetValueToBoolean(igSubscribed),
+        collectibles:
+          typeof collectiblesRaw === "string" && collectiblesRaw.trim().length
+            ? collectiblesRaw
+                .split(/[,，]/)
+                .map((v) => v.trim())
+                .filter((v) => v.length > 0)
+            : []
       };
       break;
     }

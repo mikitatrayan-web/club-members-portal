@@ -43,6 +43,7 @@ type MemberResponse =
         referredBy?: string | null;
         referrals?: string[];
         igSubscribed?: boolean;
+        collectibles?: string[];
       };
     }
   | {
@@ -327,6 +328,15 @@ export default function HomePage() {
               <BonusCard label="Drinks" value={result.member.drinks} />
               <BonusCard label="Snacks" value={result.member.snacks} />
             </div>
+
+            {result.member.collectibles && result.member.collectibles.length > 0 && (
+              <p className="profile-copy-secondary" style={{ marginTop: "0.4rem" }}>
+                Collectible cards:{" "}
+                <span style={{ fontWeight: 600 }}>
+                  {result.member.collectibles.join(", ")}
+                </span>
+              </p>
+            )}
 
             {(() => {
               const referredBy = result.member.referredBy;
