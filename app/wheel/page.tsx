@@ -148,6 +148,7 @@ export default function WheelPage() {
                 activeIndex={activeIndex}
                 spinning={spinning}
                 onSpinComplete={() => setSpinning(false)}
+                resultLabel={spinResult && spinResult.ok && !spinning ? spinResult.outcome.label : null}
               />
 
               {spinError && (
@@ -156,14 +157,6 @@ export default function WheelPage() {
                 </p>
               )}
 
-              {spinResult && spinResult.ok && !spinning && (
-                <p className="banner-warning" style={{ marginTop: "0.9rem" }}>
-                  Spin recorded for <strong>{spinResult.memberId}</strong>.
-                  &nbsp;Outcome:{" "}
-                  <strong>{spinResult.outcome.label}</strong>. &nbsp;Total spins
-                  used: <strong>{spinResult.newSpinCount}</strong>.
-                </p>
-              )}
             </div>
           </div>
         </section>

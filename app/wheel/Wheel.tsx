@@ -7,11 +7,12 @@ type WheelProps = {
   activeIndex: number | null;
   spinning: boolean;
   onSpinComplete?: () => void;
+  resultLabel?: string | null;
 };
 
 type SpinWheelInstance = InstanceType<typeof import("spin-wheel").Wheel>;
 
-export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
+export function Wheel({ activeIndex, spinning, onSpinComplete, resultLabel }: WheelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const wheelRef = useRef<SpinWheelInstance | null>(null);
   const easingRef = useRef<((n: number) => number) | null>(null);
@@ -110,6 +111,33 @@ export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
           height: "100%"
         }}
       />
+      {resultLabel && !spinning && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            background: "rgba(0,0,0,0.72)",
+            color: "#facc15",
+            borderRadius: "50%",
+            width: 120,
+            height: 120,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            fontWeight: 700,
+            fontSize: "0.95rem",
+            lineHeight: 1.25,
+            padding: "0.5rem",
+            pointerEvents: "none",
+            zIndex: 20
+          }}
+        >
+          {resultLabel}
+        </div>
+      )}
     </div>
   );
 }
