@@ -42,9 +42,8 @@ export async function POST(request: NextRequest) {
     }
 
     const totalSpins = member.spins || 0;
-    const usedSpins = member.spinUses || 0;
 
-    if (totalSpins <= 0 || usedSpins >= totalSpins) {
+    if (totalSpins <= 0) {
       return NextResponse.json(
         { ok: false, error: "No spins remaining for this member." },
         { status: 400 }
