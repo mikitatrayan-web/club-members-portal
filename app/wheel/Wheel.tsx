@@ -7,18 +7,15 @@ type WheelProps = {
   activeIndex: number | null;
   spinning: boolean;
   onSpinComplete?: () => void;
-  onSpinGesture?: () => void;
-  canSpin?: boolean;
 };
 
 type SpinWheelInstance = InstanceType<typeof import("spin-wheel").Wheel>;
 
-export function Wheel({ activeIndex, spinning, onSpinComplete, onSpinGesture, canSpin }: WheelProps) {
+export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const wheelRef = useRef<SpinWheelInstance | null>(null);
   const easingRef = useRef<((n: number) => number) | null>(null);
   const lastIndexRef = useRef<number | null>(null);
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -87,41 +84,9 @@ export function Wheel({ activeIndex, spinning, onSpinComplete, onSpinGesture, ca
     }
   }, [activeIndex, onSpinComplete]);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!canSpin) return;
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragStartRef.current || !canSpin) return;
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-    dragStartRef.current = null;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist > 50 && onSpinGesture) {
-      onSpinGesture();
-    }
-  };
-
-  const handlePointerCancel = () => {
-    dragStartRef.current = null;
-  };
-
   return (
     <div
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      style={{
-        position: "relative",
-        width: 280,
-        height: 280,
-        margin: "0 auto",
-        cursor: canSpin ? "grab" : "default",
-        touchAction: "none",
-        userSelect: "none"
-      }}
+      style={{ position: "relative", width: 280, height: 280, margin: "0 auto" }}
     >
       <div
         style={{

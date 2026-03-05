@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { Wheel } from "./Wheel";
 import { wheelSegments } from "./config";
 
@@ -105,7 +105,13 @@ export default function WheelPage() {
               </p>
             </header>
 
-            <div style={{ marginTop: "1.2rem" }}>
+            <form
+              onSubmit={(event: FormEvent) => {
+                event.preventDefault();
+                handleSpin();
+              }}
+              style={{ marginTop: "1.2rem" }}
+            >
               <label htmlFor="wheel-member-id" className="field-label">
                 Member ID
               </label>
@@ -125,22 +131,24 @@ export default function WheelPage() {
               </p>
 
               {memberError && <p className="banner-error">{memberError}</p>}
-            </div>
+
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={spinning}
+              >
+                <span className="primary-button-label">
+                  {spinning ? "Spinning..." : "Spin for this member"}
+                </span>
+              </button>
+            </form>
 
             <div style={{ marginTop: "1.5rem" }}>
               <Wheel
                 activeIndex={activeIndex}
                 spinning={spinning}
                 onSpinComplete={() => setSpinning(false)}
-                onSpinGesture={handleSpin}
-                canSpin={!spinning}
               />
-              <p
-                className="field-hint"
-                style={{ textAlign: "center", marginTop: "0.6rem" }}
-              >
-                {spinning ? "Spinning…" : "Swipe the wheel to spin"}
-              </p>
 
               {spinError && (
                 <p className="banner-error" style={{ marginTop: "0.9rem" }}>
@@ -163,4 +171,3 @@ export default function WheelPage() {
     </main>
   );
 }
-
