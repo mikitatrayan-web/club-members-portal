@@ -311,25 +311,36 @@ export async function incrementMemberSpinCount(id: string): Promise<number> {
     throw new Error("Member not found when incrementing spin count.");
   }
 
-  const currentValueResponse = await sheets.spreadsheets.values.get({
+  // Read current spin balance (col C) and spin uses counter (col M) together.
+  const cellsResponse = await sheets.spreadsheets.values.batchGet({
     spreadsheetId,
-    range: `${sheetName}!M${rowNumber}`
+    ranges: [
+      `${sheetName}!C${rowNumber}`,
+      `${sheetName}!M${rowNumber}`
+    ]
   });
 
-  const cellValues = currentValueResponse.data.values;
-  const rawValue = cellValues && cellValues[0] && cellValues[0][0];
-  const currentCount = Number(rawValue) || 0;
-  const nextCount = currentCount + 1;
+  const valueRanges = cellsResponse.data.valueRanges ?? [];
+  const rawSpins = valueRanges[0]?.values?.[0]?.[0];
+  const rawUses = valueRanges[1]?.values?.[0]?.[0];
 
-  await sheets.spreadsheets.values.update({
+  const currentSpins = Number(rawSpins) || 0;
+  const currentUses = Number(rawUses) || 0;
+
+  const nextSpins = Math.max(0, currentSpins - 1);
+  const nextUses = currentUses + 1;
+
+  await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
-    range: `${sheetName}!M${rowNumber}`,
-    valueInputOption: "USER_ENTERED",
     requestBody: {
-      values: [[nextCount]]
+      valueInputOption: "USER_ENTERED",
+      data: [
+        { range: `${sheetName}!C${rowNumber}`, values: [[nextSpins]] },
+        { range: `${sheetName}!M${rowNumber}`, values: [[nextUses]] }
+      ]
     }
   });
 
-  return nextCount;
+  return nextUses;
 }
 

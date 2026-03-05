@@ -39,7 +39,9 @@ export function Wheel({ activeIndex, spinning, onSpinComplete }: WheelProps) {
         if (!WheelClass || !mounted) return;
 
         const items = wheelSegments.map((segment) => ({
-          label: segment.label
+          label: segment.label,
+          backgroundColor: segment.color,
+          labelColor: segment.labelColor ?? "#ffffff"
         }));
 
         const wheel = new WheelClass(containerRef.current, {
