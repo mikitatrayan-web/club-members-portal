@@ -307,8 +307,7 @@ function HomePageInner() {
                   Member {result.member.id}
                 </h1>
                 <p className="profile-meta-copy">
-                  Herb-born traveler from the past future. These are the gifts
-                  the garden still owes you.
+                  Use spins with any staff member at the club
                 </p>
               </div>
               {result.member.archetype && (
@@ -376,8 +375,7 @@ function HomePageInner() {
             })()}
 
             <p className="profile-copy">
-              Redeem these in-club with any staff member. Herbs, spins, and sips
-              align under the same sky.
+              FOLLOW US – GET A SPIN
             </p>
             <p className="profile-copy-secondary">
               When your balances return to zero, the cosmos simply waits for
@@ -394,21 +392,21 @@ function HomePageInner() {
               {result.member.igSubscribed ? (
                 <>
                   <p className="review-panel-title">
-                    QUEST COMPLETE – INSTA PRE-ROLL
+                    QUEST COMPLETE – INSTA SPIN
                   </p>
                   <p className="review-panel-body">
                     You&apos;re already tuned into our Instagram signal. Staff
-                    have credited your subscription pre-roll; watch for the next
+                    have credited your subscription spin; watch for the next
                     quest to appear here.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="review-panel-title">
-                    FOLLOW US – GET PRE-ROLL
+                    FOLLOW US – GET A SPIN
                   </p>
                   <p className="review-panel-body">
-                    Subscribe to our Instagram to unlock another pre-roll. Show
+                    Subscribe to our Instagram to unlock a spin. Show
                     staff your follow screen so they can sync the bonus into
                     this profile.
                   </p>
@@ -429,7 +427,7 @@ function HomePageInner() {
             {result.member.reviewCredited ? (
               <div className="review-panel review-panel--complete">
                 <p className="review-panel-title">
-                  QUEST COMPLETE – PRE-ROLL CREDITED
+                  QUEST COMPLETE – SPIN CREDITED
                 </p>
                 <p className="review-panel-body">
                   Staff have already anchored this bonus into your profile. Drift
@@ -444,7 +442,7 @@ function HomePageInner() {
                   onClick={handleReviewClick}
                   disabled={reviewSaving}
                 >
-                  LEAVE REVIEW -&gt; GET PRE-ROLL
+                  LEAVE REVIEW -&gt; GET A SPIN
                 </button>
                 {reviewError && (
                   <p
@@ -458,7 +456,7 @@ function HomePageInner() {
             ) : (
               <div className="review-panel">
                 <p className="review-panel-title">
-                  AFTER THE REVIEW IS POSTED – CLAIM YOUR PRE-ROLL
+                  AFTER THE REVIEW IS POSTED – CLAIM YOUR SPIN
                 </p>
                 <p className="review-panel-body">
                   Show this to staff after your cosmic words go live. They&apos;ll
@@ -492,7 +490,7 @@ function HomePageInner() {
                   </button>
                 </div>
                 <p className="review-ack">
-                  Once staff have seen your review, they&apos;ll add the pre-roll
+                  Once staff have seen your review, they&apos;ll add the spin
                   to your cosmic balance.
                 </p>
               </div>

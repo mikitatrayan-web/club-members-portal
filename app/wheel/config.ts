@@ -11,13 +11,14 @@ export type WheelSegment = {
 // Order here defines the index that the server returns.
 // Keep it in sync with any visual labels used by the wheel.
 export const wheelSegments: WheelSegment[] = [
-  { label: "No win",          value: "none",          probability: 0.2,  color: "#4b5563", labelColor: "#d1d5db" },
-  { label: "Paper",           value: "paper",         probability: 0.15, color: "#c4a265", labelColor: "#1c1008" },
-  { label: "Drink",           value: "drink",         probability: 0.15, color: "#0284c7", labelColor: "#e0f2fe" },
-  { label: "Pre-roll Orange", value: "preroll-orange", probability: 0.15, color: "#ea580c", labelColor: "#fff7ed" },
-  { label: "Pre-roll Blue",   value: "preroll-blue",  probability: 0.15, color: "#4f46e5", labelColor: "#eef2ff" },
-  { label: "Pre-roll Yellow", value: "preroll-yellow", probability: 0.1,  color: "#ca8a04", labelColor: "#fefce8" },
-  { label: "Pre-roll Brown",  value: "preroll-brown", probability: 0.1,  color: "#78350f", labelColor: "#fef3c7" }
+  { label: "No prize",        value: "none",          probability: 0.2,  color: "#4b5563", labelColor: "#d1d5db" },
+  { label: "Mascotte",        value: "mascotte",      probability: 0.15, color: "#c4a265", labelColor: "#1c1008" },
+  { label: "Free Drink",      value: "drink",         probability: 0.15, color: "#0284c7", labelColor: "#e0f2fe" },
+  { label: "Snack",           value: "snack",         probability: 0.1,  color: "#16a34a", labelColor: "#f0fdf4" },
+  { label: "Pure Pre-roll",   value: "preroll-pure",   probability: 0.1,  color: "#e11d48", labelColor: "#fff1f2" },
+  { label: "Blue Pre-roll",   value: "preroll-blue",   probability: 0.1,  color: "#4f46e5", labelColor: "#eef2ff" },
+  { label: "Yellow Pre-roll", value: "preroll-yellow", probability: 0.1,  color: "#ca8a04", labelColor: "#fefce8" },
+  { label: "Orange Pre-roll", value: "preroll-orange", probability: 0.1,  color: "#ea580c", labelColor: "#fff7ed" }
 ];
 
 export function pickWeightedOutcome(segments: WheelSegment[]): number {
