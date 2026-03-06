@@ -115,8 +115,7 @@ function WheelPageInner() {
             <header>
               <h2 className="panel-header-title">Member &amp; wheel</h2>
               <p className="panel-header-subtitle">
-                Enter a member ID and spin. Column M in the sheet tracks total
-                spins used.
+                Enter a member ID and spin. 
               </p>
             </header>
 
